@@ -3,41 +3,54 @@
 
 <head>
     <title>VCard Parser</title>
-    <script type="text/javascript" src="https://rawgit.com/schmich/instascan-builds/master/instascan.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@zxing/library@0.17.0/umd/index.min.js"></script>
 </head>
 
 <body>
     <video id="preview"></video>
     <div id="parsedContent"></div>
     <script>
-        let scanner = new Instascan.Scanner({
-            video: document.getElementById('preview')
-        });
+        const codeReader = new ZXing.BrowserQRCodeReader();
 
-        scanner.addListener('scan', function (content) {
-            const parsedContent = parseVCard(content);
-            document.getElementById('parsedContent').innerText = parsedContent;
-        });
+        const videoElement = document.getElementById('preview');
+        const parsedContentElement = document.getElementById('parsedContent');
 
-        Instascan.Camera.getCameras().then(cameras => {
-            if (cameras.length > 1) {
-                scanner.start(cameras[1]);
-            } else {
-                scanner.start(cameras[0]);
-            }
-        });
+        codeReader
+            .listVideoInputDevices()
+            .then((videoInputDevices) => {
+                if (videoInputDevices.length > 0) {
+                    codeReader
+                        .decodeFromVideoDevice(videoInputDevices[0].deviceId, videoElement, (result, err) => {
+                            if (result) {
+                                const parsedContent = parseVCard(result.text);
+                                parsedContentElement.innerText = parsedContent;
+                            }
+                            if (err && !(err instanceof ZXing.NotFoundException)) {
+                                console.error(err);
+                            }
+                        });
+                } else {
+                    console.error('No video input devices found.');
+                }
+            })
+            .catch((err) => {
+                console.error(err);
+            });
 
         function parseVCard(content) {
             const lines = content.split('\n');
             let parsedContent = '';
+            let fullName = '';
+            let birthday = '';
 
             for (const line of lines) {
                 if (line.startsWith('FN:')) {
-                    parsedContent += 'Nome: ' + line.substring(3) + '\n';
+                    fullName = line.substring(3);
                 } else if (line.startsWith('N:')) {
-                    parsedContent += 'Nome Estruturado: ' + line.substring(2) + '\n';
-                } else if (line.startsWith('ANNIVERSARY:') || line.startsWith('BDAY:')) {
-                    parsedContent += 'Aniversário: ' + formatDate(line.substring(line.indexOf(':') + 1)) + '\n';
+                    const nameParts = line.substring(2).split(';');
+                    fullName = nameParts[1] + ' ' + nameParts[0];
+                } else if ((line.startsWith('ANNIVERSARY:') || line.startsWith('BDAY:')) && !birthday) {
+                    birthday = 'Aniversário: ' + formatDate(line.substring(line.indexOf(':') + 1)) + '\n';
                 } else if (line.startsWith('GENDER:')) {
                     parsedContent += 'Gênero: ' + (line.substring(7) === 'M' ? 'Masculino' : 'Feminino') + '\n';
                 } else if (line.startsWith('EMAIL:')) {
@@ -47,6 +60,7 @@
                 }
             }
 
+            parsedContent = 'Nome: ' + fullName + '\n' + birthday + parsedContent;
             return parsedContent;
         }
 
