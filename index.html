@@ -8,73 +8,72 @@
 </head>
 
 <body class="bg-gray-100 h-screen flex items-center justify-center">
-    <div class="max-w-md bg-white p-6 rounded-md shadow-md">
+    <div class="max-w-md bg-white p-6 rounded-md shadow-md w-full">
         <h1 class="text-2xl font-semibold mb-4">Repasse de informações GOV</h1>
         <video id="preview" class="w-full mb-4"></video>
         <div id="parsedContent" class="text-sm"></div>
-    </div>
-    <script>
-        const codeReader = new ZXing.BrowserQRCodeReader();
+        <script>
+            const codeReader = new ZXing.BrowserQRCodeReader();
 
-        const videoElement = document.getElementById('preview');
-        const parsedContentElement = document.getElementById('parsedContent');
+            const videoElement = document.getElementById('preview');
+            const parsedContentElement = document.getElementById('parsedContent');
 
-        codeReader
-            .listVideoInputDevices()
-            .then((videoInputDevices) => {
-                if (videoInputDevices.length > 0) {
-                    codeReader
-                        .decodeFromVideoDevice(videoInputDevices[0].deviceId, videoElement, (result, err) => {
-                            if (result) {
-                                const parsedContent = parseVCard(result.text);
-                                parsedContentElement.innerText = parsedContent;
-                            }
-                            if (err && !(err instanceof ZXing.NotFoundException)) {
-                                console.error(err);
-                            }
-                        });
-                } else {
-                    console.error('No video input devices found.');
+            codeReader
+                .listVideoInputDevices()
+                .then((videoInputDevices) => {
+                    if (videoInputDevices.length > 0) {
+                        codeReader
+                            .decodeFromVideoDevice(videoInputDevices[0].deviceId, videoElement, (result, err) => {
+                                if (result) {
+                                    const parsedContent = parseVCard(result.text);
+                                    parsedContentElement.innerText = parsedContent;
+                                }
+                                if (err && !(err instanceof ZXing.NotFoundException)) {
+                                    console.error(err);
+                                }
+                            });
+                    } else {
+                        console.error('No video input devices found.');
+                    }
+                })
+                .catch((err) => {
+                    console.error(err);
+                });
+
+            function parseVCard(content) {
+                const lines = content.split('\n');
+                let parsedContent = '';
+                let fullName = '';
+                let birthday = '';
+
+                for (const line of lines) {
+                    if (line.startsWith('FN:')) {
+                        fullName = line.substring(3);
+                    } else if (line.startsWith('N:')) {
+                        const nameParts = line.substring(2).split(';');
+                        fullName = nameParts[1] + ' ' + nameParts[0];
+                    } else if ((line.startsWith('ANNIVERSARY:') || line.startsWith('BDAY:')) && !birthday) {
+                        birthday = 'Aniversário: ' + formatDate(line.substring(line.indexOf(':') + 1)) + '\n';
+                    } else if (line.startsWith('GENDER:')) {
+                        parsedContent += 'Gênero: ' + (line.substring(7) === 'M' ? 'Masculino' : 'Feminino') + '\n';
+                    } else if (line.startsWith('EMAIL:')) {
+                        parsedContent += 'Email: ' + line.substring(6) + '\n';
+                    } else if (line.startsWith('TEL:')) {
+                        parsedContent += 'Telefone: ' + line.substring(4) + '\n';
+                    }
                 }
-            })
-            .catch((err) => {
-                console.error(err);
-            });
 
-        function parseVCard(content) {
-            const lines = content.split('\n');
-            let parsedContent = '';
-            let fullName = '';
-            let birthday = '';
-
-            for (const line of lines) {
-                if (line.startsWith('FN:')) {
-                    fullName = line.substring(3);
-                } else if (line.startsWith('N:')) {
-                    const nameParts = line.substring(2).split(';');
-                    fullName = nameParts[1] + ' ' + nameParts[0];
-                } else if ((line.startsWith('ANNIVERSARY:') || line.startsWith('BDAY:')) && !birthday) {
-                    birthday = 'Aniversário: ' + formatDate(line.substring(line.indexOf(':') + 1)) + '\n';
-                } else if (line.startsWith('GENDER:')) {
-                    parsedContent += 'Gênero: ' + (line.substring(7) === 'M' ? 'Masculino' : 'Feminino') + '\n';
-                } else if (line.startsWith('EMAIL:')) {
-                    parsedContent += 'Email: ' + line.substring(6) + '\n';
-                } else if (line.startsWith('TEL:')) {
-                    parsedContent += 'Telefone: ' + line.substring(4) + '\n';
-                }
+                parsedContent = 'Nome: ' + fullName + '\n' + birthday + parsedContent;
+                return parsedContent;
             }
 
-            parsedContent = 'Nome: ' + fullName + '\n' + birthday + parsedContent;
-            return parsedContent;
-        }
-
-        function formatDate(dateString) {
-            const year = dateString.substr(0, 4);
-            const month = dateString.substr(4, 2);
-            const day = dateString.substr(6, 2);
-            return `${day}/${month}/${year}`;
-        }
-    </script>
+            function formatDate(dateString) {
+                const year = dateString.substr(0, 4);
+                const month = dateString.substr(4, 2);
+                const day = dateString.substr(6, 2);
+                return `${day}/${month}/${year}`;
+            }
+        </script>
 </body>
 
 </html>
