@@ -2,13 +2,17 @@
 <html>
 
 <head>
-    <title>VCard Parser</title>
+    <title>Repasse de informações GOV</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.16/dist/tailwind.min.css" rel="stylesheet">
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@zxing/library@0.17.0/umd/index.min.js"></script>
 </head>
 
-<body>
-    <video id="preview"></video>
-    <div id="parsedContent"></div>
+<body class="bg-gray-100 h-screen flex items-center justify-center">
+    <div class="max-w-md bg-white p-6 rounded-md shadow-md">
+        <h1 class="text-2xl font-semibold mb-4">Repasse de informações GOV</h1>
+        <video id="preview" class="w-full mb-4"></video>
+        <div id="parsedContent" class="text-sm"></div>
+    </div>
     <script>
         const codeReader = new ZXing.BrowserQRCodeReader();
 
