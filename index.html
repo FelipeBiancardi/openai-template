@@ -1,31 +1,62 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>Instascan</title>
-    <script type="text/javascript" src="https://rawgit.com/schmich/instascan-builds/master/instascan.min.js" ></script>	
-  </head>
-  <body>
+
+<head>
+    <title>VCard Parser</title>
+    <script type="text/javascript" src="https://rawgit.com/schmich/instascan-builds/master/instascan.min.js"></script>
+</head>
+
+<body>
     <video id="preview"></video>
+    <div id="parsedContent"></div>
     <script>
-        let scanner = new Instascan.Scanner(
-            {
-                video: document.getElementById('preview')
-            }
-        );
-        scanner.addListener('scan', function(content) {
-            alert('Escaneou o conteudo: ' + content);
-            console.log(content);
-            // window.open(content, "_blank");
+        let scanner = new Instascan.Scanner({
+            video: document.getElementById('preview')
         });
-        Instascan.Camera.getCameras().then(cameras => 
-        {
-            if(cameras.length > 1){
+
+        scanner.addListener('scan', function (content) {
+            const parsedContent = parseVCard(content);
+            document.getElementById('parsedContent').innerText = parsedContent;
+        });
+
+        Instascan.Camera.getCameras().then(cameras => {
+            if (cameras.length > 1) {
                 scanner.start(cameras[1]);
             } else {
                 scanner.start(cameras[0]);
             }
         });
-    </script>
 
- </body>
+        function parseVCard(content) {
+            const lines = content.split('\n');
+            let parsedContent = '';
+
+            for (const line of lines) {
+                if (line.startsWith('FN:')) {
+                    parsedContent += 'Nome: ' + line.substring(3) + '\n';
+                } else if (line.startsWith('N:')) {
+                    parsedContent += 'Nome Estruturado: ' + line.substring(2) + '\n';
+                } else if (line.startsWith('ANNIVERSARY:') || line.startsWith('BDAY:')) {
+                    parsedContent += 'Aniversário: ' + formatDate(line.substring(line.indexOf(':') + 1)) + '\n';
+                } else if (line.startsWith('GENDER:')) {
+                    parsedContent += 'Gênero: ' + (line.substring(7) === 'M' ? 'Masculino' : 'Feminino') + '\n';
+                } else if (line.startsWith('EMAIL:')) {
+                    parsedContent += 'Email: ' + line.substring(6) + '\n';
+                } else if (line.startsWith('TEL:')) {
+                    parsedContent += 'Telefone: ' + line.substring(4) + '\n';
+                }
+            }
+
+            return parsedContent;
+        }
+
+        function formatDate(dateString) {
+            const year = dateString.substr(0, 4);
+            const month = dateString.substr(4, 2);
+            const day = dateString.substr(6, 2);
+            return `${day}/${month}/${year}`;
+        }
+    </script>
+</body>
+
 </html>
