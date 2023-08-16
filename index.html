@@ -7,11 +7,12 @@
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@zxing/library@0.17.0/umd/index.min.js"></script>
 </head>
 
-<body class="bg-gray-100 h-screen flex items-center justify-center">
-    <div class="max-w-md bg-white p-6 rounded-md shadow-md w-full">
-        <h1 class="text-2xl font-semibold mb-4">Repasse de informações GOV</h1>
-        <video id="preview" class="w-full mb-4"></video>
-        <div id="parsedContent" class="text-sm"></div>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+    <div class="max-w-md bg-white p-6 rounded-md shadow-md w-full md:w-auto">
+      <h1 class="text-2xl font-semibold mb-4">VCard Parser</h1>
+      <video id="preview" class="w-full mb-4"></video>
+      <div id="parsedContent" class="text-sm"></div>
+    </div>
         <script>
             const codeReader = new ZXing.BrowserQRCodeReader();
 
