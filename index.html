@@ -9,7 +9,7 @@
 
 <body class="bg-gray-100 min-h-screen flex items-center justify-center">
     <div class="max-w-md bg-white p-6 rounded-md shadow-md w-full md:w-auto">
-        <h1 class="text-2xl font-semibold mb-4">Leitura QRCode GOV.BR</h1>
+        <h1 class="text-2xl font-semibold mb-4">Leitura QRCode GOV.BR - v.1.0.0</h1>
         <video id="preview" class="w-full mb-4"></video>
         <div id="parsedContent" class="text-sm"></div>
     </div>
@@ -27,7 +27,7 @@
                     codeReader
                         .decodeFromVideoDevice(videoInputDevices[0].deviceId, videoElement, (result, err) => {
                             if (result) {
-                                const [parsedContent, dados] = parseVCard(result.text);
+                                const {parsedContent, dados} = parseVCard(result.text);
                                 parsedContentElement.innerText = parsedContent;
                                 axios.post("https://exemplo-integracao-cliente.bohr.io/api/integracao", dados)
                                     .then(function(response) {
@@ -80,7 +80,7 @@
             }
 
             parsedContent = 'Nome: ' + fullName + '\n' + birthday + parsedContent;
-            return parsedContent, dados;
+            return {parsedContent, dados};
         }
 
         function formatDate(dateString) {
