@@ -25,7 +25,7 @@
             .then((videoInputDevices) => {
                 if (videoInputDevices.length > 0) {
                     codeReader
-                        .decodeFromVideoDevice(videoInputDevices[0].deviceId, videoElement, (result, err) => {
+                        .decodeFromVideoDevice(undefined, videoElement, (result, err) => {
                             if (result) {
                                 const {parsedContent, dados} = parseVCard(result.text);
                                 parsedContentElement.innerText = parsedContent;
