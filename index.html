@@ -29,7 +29,7 @@
                             if (result) {
                                 const {parsedContent, dados} = parseVCard(result.text);
                                 parsedContentElement.innerText = parsedContent;
-                                axios.post("https://exemplo-integracao-cliente.bohr.io/api/integracao", dados)
+                                axios.post("https://qcr-integracao.onrender.com/qrcode", dados)
                                     .then(function(response) {
                                         console.log(response);
                                     })
@@ -68,7 +68,7 @@
                     birthday = 'Aniversário: ' + formatDate(line.substring(line.indexOf(':') + 1)) + '\n';
                     dados.birthday = birthday
                 } else if (line.startsWith('GENDER:')) {
-                    parsedContent += 'Gênero: ' + (line.substring(7) === 'M' ? 'Masculino' : 'Feminino') + '\n';
+                    parsedContent += 'Sexo: ' + (line.substring(7) === 'M' ? 'Masculino' : 'Feminino') + '\n';
                     dados.genero = (line.substring(7) === 'M' ? 'Masculino' : 'Feminino')
                 } else if (line.startsWith('EMAIL:')) {
                     parsedContent += 'Email: ' + line.substring(6) + '\n';
