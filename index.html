@@ -1,97 +1,151 @@
 <!DOCTYPE html>
 <html>
-
-<head>
+  <head>
     <title>Repasse de informações GOV</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.16/dist/tailwind.min.css" rel="stylesheet">
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@zxing/library@0.17.0/umd/index.min.js"></script>
-</head>
+    <script src="https://cdn.tailwindcss.com"></script>
+</script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              darkBlue: "#1f1a57",
+              darkBlueGradient: "#292155",
+              darkRedGradient: "#87314f",
+              lightRedGradient: "#da3f41",
+            },
+          },
+        },
+      };
+    </script>
+    <script
+      type="text/javascript"
+      src="https://cdn.jsdelivr.net/npm/@zxing/library@0.17.0/umd/index.min.js"
+    ></script>
+  </head>
 
-<body class="bg-gray-100 min-h-screen flex items-center justify-center">
-    <div class="max-w-md bg-white p-6 rounded-md shadow-md w-full md:w-auto">
-        <h1 class="text-2xl font-semibold mb-4">Leitura QRCode GOV.BR - v.1.0.0</h1>
+  <body class="bg-gray-100 min-h-screen flex flex-col">
+    <header class="bg-darkBlue text-white py-4 w-full text-center">
+      <h1 class="text-2xl font-semibold">Leitor de QR Code</h1>
+    </header>
+
+    <div class="flex-grow flex items-center justify-center">
+      <div class="max-w-md bg-white p-6 rounded-md shadow-md w-full md:w-auto">
+        <h1 class="text-2xl font-semibold mb-4">
+          Leitura QRCode GOV.BR - v.1.0.0
+        </h1>
         <video id="preview" class="w-full mb-4"></video>
         <div id="parsedContent" class="text-sm"></div>
+      </div>
     </div>
+
+    <footer class=" flex flex-row items-center justify-between px-4 bg-gradient-to-r from-darkBlueGradient via-darkRedGradient to-lightRedGradient text-white py-4">
+      <div className="items-center py-2 px-8">
+        <div>
+          <p className="font-normal text-base leading-5">Av. Nossa Senhora dos Navegantes,</p>
+          <p className="font-normal text-base leading-5">Nº 495, Sala 310, Bairro Enseada do Suá</p>
+          <p className="font-normal text-base leading-5">
+            <strong>Vitória, ES,</strong> Cep 29.050-335
+          </p>
+        </div>
+      </div>
+      <div>
+        <a className="font-normal text-base leading-5" href="https://seniorteam.com.br/">
+          seniorteam.com.br
+        </a>
+      </div>
+    </footer>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script>
-        const codeReader = new ZXing.BrowserQRCodeReader();
-        let timeoutID = null; // Variável para armazenar o ID do timeout
-        const videoElement = document.getElementById('preview');
-        const parsedContentElement = document.getElementById('parsedContent');
+      const codeReader = new ZXing.BrowserQRCodeReader();
+      let timeoutID = null;
+      const videoElement = document.getElementById("preview");
+      const parsedContentElement = document.getElementById("parsedContent");
 
-        codeReader
-            .listVideoInputDevices()
-            .then((videoInputDevices) => {
-                if (videoInputDevices.length > 0) {
-                    codeReader
-                        .decodeFromVideoDevice(undefined, videoElement, (result, err) => {
-                            if (result) {
-                                const {parsedContent, dados} = parseVCard(result.text);
-                                parsedContentElement.innerText = parsedContent;
-                                axios.post("https://qcr-integracao.onrender.com/qrcode", dados)
-                                    .then(function(response) {
-                                        console.log(response);
-                                    })
-                                    .catch(function(error) {
-                                        console.log(error);
-                                    });
-                                    timeoutID = setTimeout(readQRCode, 5000);
-                            }
-                            if (err && !(err instanceof ZXing.NotFoundException)) {
-                                console.error(err);
-                                timeoutID = setTimeout(readQRCode, 5000);
-                            }
-                        });
-                } else {
-                    console.error('No video input devices found.');
+      codeReader
+        .listVideoInputDevices()
+        .then((videoInputDevices) => {
+          if (videoInputDevices.length > 0) {
+            codeReader.decodeFromVideoDevice(
+              undefined,
+              videoElement,
+              (result, err) => {
+                if (result) {
+                  const { parsedContent, dados } = parseVCard(result.text);
+                  parsedContentElement.innerText = parsedContent;
+                  axios
+                    .post("https://qcr-integracao.onrender.com/qrcode", dados)
+                    .then(function (response) {
+                      console.log(response);
+                    })
+                    .catch(function (error) {
+                      console.log(error);
+                    });
+                  timeoutID = setTimeout(readQRCode, 5000);
                 }
-            })
-            .catch((err) => {
-                console.error(err);
-            });
-
-        function parseVCard(content) {
-            const lines = content.split('\n');
-            let parsedContent = '';
-            let fullName = '';
-            let dataNascimento = '';
-            let dados = {}
-
-            for (const line of lines) {
-                if (line.startsWith('FN:')) {
-                    fullName = line.substring(3);
-                    dados.fullName = fullName
-                } else if (line.startsWith('N:')) {
-                    const nameParts = line.substring(2).split(';');
-                    fullName = nameParts[1] + ' ' + nameParts[0];
-                    dados.fullName = fullName
-                } else if ((line.startsWith('ANNIVERSARY:') || line.startsWith('BDAY:')) && !dataNascimento) {
-                    dataNascimento = 'Aniversário: ' + formatDate(line.substring(line.indexOf(':') + 1)) + '\n';
-                    dados.dataNascimento = dataNascimento
-                } else if (line.startsWith('GENDER:')) {
-                    parsedContent += 'Sexo: ' + (line.substring(7) === 'M' ? 'Masculino' : 'Feminino') + '\n';
-                    dados.sexo = (line.substring(7) === 'M' ? 'Masculino' : 'Feminino')
-                } else if (line.startsWith('EMAIL:')) {
-                    parsedContent += 'Email: ' + line.substring(6) + '\n';
-                    dados.email = line.substring(6)
-                } else if (line.startsWith('TEL:')) {
-                    parsedContent += 'Telefone: ' + line.substring(4) + '\n';
-                    dados.telefone = line.substring(4)
+                if (err && !(err instanceof ZXing.NotFoundException)) {
+                  console.error(err);
+                  timeoutID = setTimeout(readQRCode, 5000);
                 }
-            }
+              }
+            );
+          } else {
+            console.error("No video input devices found.");
+          }
+        })
+        .catch((err) => {
+          console.error(err);
+        });
 
-            parsedContent = 'Nome: ' + fullName + dataNascimento + parsedContent;
-            return {parsedContent, dados};
+      function parseVCard(content) {
+        const lines = content.split("\n");
+        let parsedContent = "";
+        let fullName = "";
+        let dataNascimento = "";
+        let dados = {};
+
+        for (const line of lines) {
+          if (line.startsWith("FN:")) {
+            fullName = line.substring(3);
+            dados.fullName = fullName;
+          } else if (line.startsWith("N:")) {
+            const nameParts = line.substring(2).split(";");
+            fullName = nameParts[1] + " " + nameParts[0];
+            dados.fullName = fullName;
+          } else if (
+            (line.startsWith("ANNIVERSARY:") || line.startsWith("BDAY:")) &&
+            !dataNascimento
+          ) {
+            dataNascimento =
+              "Aniversário: " +
+              formatDate(line.substring(line.indexOf(":") + 1)) +
+              "\n";
+            dados.dataNascimento = dataNascimento;
+          } else if (line.startsWith("GENDER:")) {
+            parsedContent +=
+              "Sexo: " +
+              (line.substring(7) === "M" ? "Masculino" : "Feminino") +
+              "\n";
+            dados.sexo = line.substring(7) === "M" ? "Masculino" : "Feminino";
+          } else if (line.startsWith("EMAIL:")) {
+            parsedContent += "Email: " + line.substring(6) + "\n";
+            dados.email = line.substring(6);
+          } else if (line.startsWith("TEL:")) {
+            parsedContent += "Telefone: " + line.substring(4) + "\n";
+            dados.telefone = line.substring(4);
+          }
         }
 
-        function formatDate(dateString) {
-            const year = dateString.substr(0, 4);
-            const month = dateString.substr(4, 2);
-            const day = dateString.substr(6, 2);
-            return `${day}/${month}/${year}`;
-        }
+        parsedContent = "Nome: " + fullName + dataNascimento + parsedContent;
+        return { parsedContent, dados };
+      }
+
+      function formatDate(dateString) {
+        const year = dateString.substr(0, 4);
+        const month = dateString.substr(4, 2);
+        const day = dateString.substr(6, 2);
+        return `${day}/${month}/${year}`;
+      }
     </script>
-</body>
-
+  </body>
 </html>
