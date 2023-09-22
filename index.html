@@ -25,21 +25,12 @@
   </head>
 
   <body class="bg-gray-100 min-h-screen flex flex-col">
-    <input
-      type="text"
-      id="hiddenInput"
-      style="position: absolute; top: -9999px;"
-    >
-
-    <header class="bg-darkBlue text-white py-4 w-full text-center">
-      <h1 class="text-2xl font-semibold">Leitor de QR Code</h1>
+    <header class="bg-darkBlue flex justify-start items-center text-white py-4 w-full">
+      <img class="w-32 ml-4" src="https://i.ibb.co/SVQ5R0w/Logo-Senior.png" alt="">
+      <h1 class="text-2xl font-semibold flex-grow text-center">Leitor de QR Code</h1>
     </header>
-
     <div class="flex-grow flex items-center justify-center">
       <div class="max-w-md bg-white p-6 rounded-md shadow-md w-full md:w-auto">
-        <h1 class="text-2xl font-semibold mb-4">
-          Leitura QRCode GOV.BR - v.1.0.0
-        </h1>
         <video id="preview" class="w-full mb-4"></video>
         <div id="parsedContent" class="text-sm"></div>
       </div>
@@ -67,43 +58,7 @@
       let timeoutID = null;
       const videoElement = document.getElementById("preview");
       const parsedContentElement = document.getElementById("parsedContent");
-      const hiddenInput = document.getElementById("hiddenInput");
 
-      hiddenInput.addEventListener("keydown", function (event) {
-        if (event.key === "Enter") {
-          const inputValue = hiddenInput.value;
-          const json = parseInputValue(inputValue);
-          console.log("Valor digitado no input invisível: " + inputValue);
-          console.log("JSON gerado:", json);
-          // Limpar o input para futuras entradas
-          hiddenInput.value = "";
-        }
-      });
-
-      function parseInputValue(inputValue) {
-  const lines = inputValue.split("Ç");
-  const pessoa = {
-    nome: formatName(lines[3]) + " " + formatName(lines[4]),
-    dataNascimento: formatDate(lines[5]),
-    genero: lines[15] === "M" ? "Masculino" : "Feminino",
-    email: lines[10], // Modificado para remover espaços em branco extras
-    telefone: formatTelefone(lines[29]),
-  };
-
-  return { pessoa };
-}
-
-function formatName(name) {
-  return name.trim();
-}
-
-// Função para formatar o telefone
-function formatTelefone(telefone) {
-  return telefone.replace(/\D/g, ""); // Remove todos os caracteres não numéricos
-}
-
-      // Selecionar o input invisível automaticamente
-      hiddenInput.focus();
       codeReader
         .listVideoInputDevices()
         .then((videoInputDevices) => {
