@@ -24,15 +24,15 @@
 
 <body class="bg-gray-100 min-h-screen flex flex-col">
   <input type="text" id="hiddenInput" style="position: absolute; top: -9999px;">
+
   <header class="bg-darkBlue flex justify-start items-center text-white py-4 w-full">
     <img class="w-32 ml-4" src="https://i.ibb.co/SVQ5R0w/Logo-Senior.png" alt="">
     <h1 class="text-2xl font-semibold flex-grow text-center">Leitor de QR Code</h1>
   </header>
+
   <div class="flex-grow flex items-center justify-center">
     <div class="max-w-md bg-white p-6 rounded-md shadow-md w-full md:w-auto">
-      <video id="preview" class="w-full mb-4">
-
-      </video>
+      <video id="preview" class="w-full mb-4"></video>
       <div id="parsedContent" class="text-sm"></div>
     </div>
   </div>
@@ -60,7 +60,6 @@
     let timeoutID = null;
     const videoElement = document.getElementById("preview");
     const parsedContentElement = document.getElementById("parsedContent");
-    // Input para leitura pelo Leitor de QRCode
     const hiddenInput = document.getElementById("hiddenInput");
 
     hiddenInput.addEventListener("keydown", function (event) {
@@ -90,8 +89,8 @@
         nome: nomeCompleto,
         dataNascimento: formatDate(lines[5]),
         sexo: sexo,
-        email: emailMatch ? emailMatch[1] : "Erro Email", // Extrai o e-mail usando a expressão regular
-        telefone: telefoneMatch ? formatTelefone(telefoneMatch[1]) : "Erro telefone",
+        email: emailMatch ? emailMatch[1] : "", // Extrai o e-mail usando a expressão regular
+        telefone: telefoneMatch ? formatTelefone(telefoneMatch[1]) : "Erro",
       };
       console.log(pessoa);
       return { pessoa };
@@ -121,20 +120,10 @@
       return telefone.replace(/\D/g, ""); // Remove todos os caracteres não numéricos
     }
 
-    function formatDate(dateString) {
-        const year = dateString.substr(0, 4);
-        const month = dateString.substr(4, 2);
-        const day = dateString.substr(6, 2);
-        return `${day}/${month}/${year}`;
-      }
-
     // Selecionar o input invisível automaticamente
     hiddenInput.focus();
-
-
-    function startQRCodeScan() {
-      codeReader
-        .listVideoInputDevices()
+    codeReader
+      .listVideoInputDevices()
       .then((videoInputDevices) => {
         if (videoInputDevices.length > 0) {
           codeReader.decodeFromVideoDevice(
@@ -144,7 +133,6 @@
               if (result) {
                 const { parsedContent, dados } = parseVCard(result.text);
                 parsedContentElement.innerText = parsedContent;
-                dados.dataNascimento = dados.dataNascimento.trim();
                 axios
                   .post("https://qcr-integracao.onrender.com/qrcode", dados)
                   .then(function (response) {
@@ -153,7 +141,6 @@
                   .catch(function (error) {
                     console.log(error);
                   });
-                timeoutID = setTimeout(startQRCodeScan, 5000);
               }
               if (err && !(err instanceof ZXing.NotFoundException)) {
                 console.error(err);
@@ -168,46 +155,53 @@
         console.error(err);
       });
 
-      function parseVCard(content) {
-        const lines = content.split("\n");
-        let parsedContent = "";
-        let dados = {};
-        let fullName = "";
-        let dataNascimento = "";
+    function parseVCard(content) {
+      const lines = content.split("\n");
+      let parsedContent = "";
+      let fullName = "";
+      let dataNascimento = "";
+      let dados = {};
 
-        for (const line of lines) {
-          if (line.startsWith("FN:")) {
-            fullName = line.substring(3);
-            dados.fullName = fullName;
-          } else if (line.startsWith("N:")) {
-            const nameParts = line.substring(2).split(";");
-            fullName = nameParts[1] + " " + nameParts[0];
-            dados.fullName = fullName;
-          } else if (line.startsWith("ANNIVERSARY:") || line.startsWith("BDAY:")) {
-            if (!dataNascimento) {
-              dataNascimento = formatDate(line.substring(line.indexOf(":") + 1)) + "\n";
-              dados.dataNascimento = dataNascimento;
-            }
-          } else if (line.startsWith("GENDER:")) {
-            parsedContent += "Sexo: " + (line.substring(7) === "M" ? "Masculino" : "Feminino") + "\n";
-            dados.sexo = line.substring(7) === "M" ? "Masculino" : "Feminino";
-          } else if (line.startsWith("EMAIL:")) {
-            parsedContent += "Email: " + line.substring(6) + "\n";
-            dados.email = line.substring(6);
-          } else if (line.startsWith("TEL:")) {
-            parsedContent += "Telefone: " + line.substring(4) + "\n";
-            dados.telefone = line.substring(4);
-          }
+      for (const line of lines) {
+        if (line.startsWith("FN:")) {
+          fullName = line.substring(3);
+          dados.fullName = fullName;
+        } else if (line.startsWith("N:")) {
+          const nameParts = line.substring(2).split(";");
+          fullName = nameParts[1] + " " + nameParts[0];
+          dados.fullName = fullName;
+        } else if (
+          (line.startsWith("ANNIVERSARY:") || line.startsWith("BDAY:")) &&
+          !dataNascimento
+        ) {
+          dataNascimento =
+            formatDate(line.substring(line.indexOf(":") + 1))
+          dados.dataNascimento = dataNascimento;
+        } else if (line.startsWith("GENDER:")) {
+          parsedContent +=
+            "Sexo: " +
+            (line.substring(7) === "M" ? "Masculino" : "Feminino") +
+            "\n";
+          dados.sexo = line.substring(7) === "M" ? "Masculino" : "Feminino";
+        } else if (line.startsWith("EMAIL:")) {
+          parsedContent += "Email: " + line.substring(6) + "\n";
+          dados.email = line.substring(6);
+        } else if (line.startsWith("TEL:")) {
+          parsedContent += "Telefone: " + line.substring(4) + "\n";
+          dados.telefone = line.substring(4);
         }
-
-        parsedContent = "Nome: " + fullName + "\n" + 'Data de Nascimento:' + dataNascimento + parsedContent;
-        console.log(parsedContent)
-        return { parsedContent, dados };
       }
 
+      parsedContent = "Nome: " + fullName + "\n" + 'Data de Nascimento:' + dataNascimento + "\n" + parsedContent;
+      return { parsedContent, dados };
     }
-    startQRCodeScan();
 
+    function formatDate(dateString) {
+      const year = dateString.substr(0, 4);
+      const month = dateString.substr(4, 2);
+      const day = dateString.substr(6, 2);
+  return `${day}/${month}/${year}`.trim(); // Use trim() para remover espaços em branco e quebras de linha
+    }
   </script>
 </body>
 
