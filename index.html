@@ -23,6 +23,7 @@
 </head>
 
 <body class="bg-gray-100 min-h-screen flex flex-col">
+  <input type="text" id="hiddenInput" style="position: absolute; top: -9999px;">
   <header class="bg-darkBlue flex justify-start items-center text-white py-4 w-full">
     <img class="w-32 ml-4" src="https://i.ibb.co/SVQ5R0w/Logo-Senior.png" alt="">
     <h1 class="text-2xl font-semibold flex-grow text-center">Leitor de QR Code</h1>
@@ -59,6 +60,77 @@
     let timeoutID = null;
     const videoElement = document.getElementById("preview");
     const parsedContentElement = document.getElementById("parsedContent");
+    // Input para leitura pelo Leitor de QRCode
+    const hiddenInput = document.getElementById("hiddenInput");
+
+    hiddenInput.addEventListener("keydown", function (event) {
+      if (event.key === "Enter") {
+        hiddenInput.value = ''
+        const inputValue = hiddenInput.value;
+        const json = parseInputValue(inputValue);
+        console.log("Valor digitado no input invisível: " + inputValue);
+        console.log("JSON gerado:", json);
+        // Limpar o input para futuras entradas
+        hiddenInput.value = "";
+      }
+    });
+
+    function parseInputValue(inputValue) {
+      const lines = inputValue.split("Ç");
+      const nomeMatch = inputValue.match(/FNÇ(.*?)ç/g);
+      const nome = nomeMatch ? nomeMatch[0].replace("FNÇ", "").replace("ç", "") : "Erro";
+      const emailMatch = /EMAILÇ(.+?)TEL/.exec(inputValue); // Usando uma expressão regular para encontrar o e-mail
+      const sexo = inputValue.includes("GENDERÇM") ? "Masculino" : "Feminino";
+      // Remova os caracteres indesejados "NÇ" e "ç" do nome e adicione um espaço entre nome e sobrenome
+      const nomeCompleto = formatName(nome.replace(/NÇ|ç/g, " ").replace(/(^\s+|\s+$)/g, ""));
+      const telefoneMatch = /TELÇ(.+?)END/.exec(inputValue);
+
+
+      const pessoa = {
+        nome: nomeCompleto,
+        dataNascimento: formatDate(lines[5]),
+        sexo: sexo,
+        email: emailMatch ? emailMatch[1] : "Erro Email", // Extrai o e-mail usando a expressão regular
+        telefone: telefoneMatch ? formatTelefone(telefoneMatch[1]) : "Erro telefone",
+      };
+      console.log(pessoa);
+      return { pessoa };
+    }
+
+
+    function findEmail(lines) {
+      // Iterar pelas linhas e procurar por uma linha que comece com "EMAILÇ"
+      for (const line of lines) {
+        if (line.startsWith("EMAILÇ")) {
+          // Se encontrou a linha de email, retorne o email após "EMAILÇ"
+          return line.substring(6);
+        }
+      }
+      // Se não encontrou o campo de email, retorne uma string vazia
+      return "";
+    }
+
+
+
+    function formatName(name) {
+      return name.trim();
+    }
+
+    // Função para formatar o telefone
+    function formatTelefone(telefone) {
+      return telefone.replace(/\D/g, ""); // Remove todos os caracteres não numéricos
+    }
+
+    function formatDate(dateString) {
+        const year = dateString.substr(0, 4);
+        const month = dateString.substr(4, 2);
+        const day = dateString.substr(6, 2);
+        return `${day}/${month}/${year}`;
+      }
+
+    // Selecionar o input invisível automaticamente
+    hiddenInput.focus();
+
 
     function startQRCodeScan() {
       codeReader
@@ -133,12 +205,6 @@
         return { parsedContent, dados };
       }
 
-      function formatDate(dateString) {
-        const year = dateString.substr(0, 4);
-        const month = dateString.substr(4, 2);
-        const day = dateString.substr(6, 2);
-        return `${day}/${month}/${year}`;
-      }
     }
     startQRCodeScan();
 
