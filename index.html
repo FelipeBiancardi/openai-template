@@ -64,7 +64,6 @@
 
     hiddenInput.addEventListener("keydown", function (event) {
       if (event.key === "Enter") {
-        hiddenInput.value = ''
         const inputValue = hiddenInput.value;
         const json = parseInputValue(inputValue);
         console.log("Valor digitado no input invisível: " + inputValue);
