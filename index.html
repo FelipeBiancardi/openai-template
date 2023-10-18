@@ -92,7 +92,13 @@
         telefone: telefoneMatch ? formatTelefone(telefoneMatch[1]) : "Erro",
       };
       console.log(pessoa);
-      return { pessoa };
+      axios.post("https://sua-api-aqui.com/endpoint", { pessoa })
+        .then(function (response) {
+          console.log("Dados enviados para a API:", response.data);
+        })
+        .catch(function (error) {
+          console.log("Erro ao enviar dados para a API:", error);
+        });
     }
 
 
@@ -199,7 +205,7 @@
       const year = dateString.substr(0, 4);
       const month = dateString.substr(4, 2);
       const day = dateString.substr(6, 2);
-  return `${day}/${month}/${year}`.trim(); // Use trim() para remover espaços em branco e quebras de linha
+      return `${day}/${month}/${year}`.trim(); // Use trim() para remover espaços em branco e quebras de linha
     }
   </script>
 </body>
