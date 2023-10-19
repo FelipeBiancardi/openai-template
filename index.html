@@ -55,6 +55,8 @@
   </footer>
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
   <script>
+      document.addEventListener("DOMContentLoaded", function () {
+
     const codeReader = new ZXing.BrowserQRCodeReader();
     let timeoutID = null;
     const videoElement = document.getElementById("preview");
@@ -197,6 +199,7 @@
       const day = dateString.substr(6, 2);
       return `${day}/${month}/${year}`.trim();
     }
+  });
   </script>
 </body>
 
