@@ -4,7 +4,6 @@
 <head>
   <title>Repasse de informações GOV</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  </script>
   <script>
     tailwind.config = {
       theme: {
@@ -38,18 +37,18 @@
   </div>
 
   <footer
-    class=" flex flex-row items-center justify-between px-4 bg-gradient-to-r from-darkBlueGradient via-darkRedGradient to-lightRedGradient text-white py-4">
-    <div className="items-center py-2 px-8">
+    class="flex flex-row items-center justify-between px-4 bg-gradient-to-r from-darkBlueGradient via-darkRedGradient to-lightRedGradient text-white py-4">
+    <div class="items-center py-2 px-8">
       <div>
-        <p className="font-normal text-base leading-5">Av. Nossa Senhora dos Navegantes,</p>
-        <p className="font-normal text-base leading-5">Nº 495, Sala 310, Bairro Enseada do Suá</p>
-        <p className="font-normal text-base leading-5">
+        <p class="font-normal text-base leading-5">Av. Nossa Senhora dos Navegantes,</p>
+        <p class="font-normal text-base leading-5">Nº 495, Sala 310, Bairro Enseada do Suá</p>
+        <p class="font-normal text-base leading-5">
           <strong>Vitória, ES,</strong> Cep 29.050-335
         </p>
       </div>
     </div>
     <div>
-      <a className="font-normal text-base leading-5" href="https://seniorteam.com.br/">
+      <a class="font-normal text-base leading-5" href="https://seniorteam.com.br/">
         seniorteam.com.br
       </a>
     </div>
@@ -65,9 +64,10 @@
     hiddenInput.addEventListener("keydown", function (event) {
       if (event.key === "Enter") {
         const inputValue = hiddenInput.value;
-        const json = parseInputValue(inputValue);
+        const jsonData = parseInputValue(inputValue);
         console.log("Valor digitado no input invisível: " + inputValue);
         hiddenInput.value = "";
+        exibirDadosLidos(jsonData);
       }
     });
 
@@ -75,18 +75,16 @@
       const lines = inputValue.split("Ç");
       const nomeMatch = inputValue.match(/FNÇ(.*?)ç/g);
       const nome = nomeMatch ? nomeMatch[0].replace("FNÇ", "").replace("ç", "") : "Erro";
-      const emailMatch = /EMAILÇ(.+?)TEL/.exec(inputValue); // Usando uma expressão regular para encontrar o e-mail
+      const emailMatch = /EMAILÇ(.+?)TEL/.exec(inputValue);
       const sexo = inputValue.includes("GENDERÇM") ? "Masculino" : "Feminino";
-      // Remova os caracteres indesejados "NÇ" e "ç" do nome e adicione um espaço entre nome e sobrenome
       const nomeCompleto = formatName(nome.replace(/NÇ|ç/g, " ").replace(/(^\s+|\s+$)/g, ""));
       const telefoneMatch = /TELÇ(.+?)END/.exec(inputValue);
-
 
       const pessoa = {
         nome: nomeCompleto,
         dataNascimento: formatDate(lines[5]),
         sexo: sexo,
-        email: emailMatch ? emailMatch[1] : "", // Extrai o e-mail usando a expressão regular
+        email: emailMatch ? emailMatch[1] : "",
         telefone: telefoneMatch ? formatTelefone(telefoneMatch[1]) : "Erro",
       };
       console.log(pessoa);
@@ -97,34 +95,28 @@
         .catch(function (error) {
           console.log("Erro ao enviar dados para a API:", error);
         });
+      return pessoa;
     }
-
-
-    function findEmail(lines) {
-      // Iterar pelas linhas e procurar por uma linha que comece com "EMAILÇ"
-      for (const line of lines) {
-        if (line.startsWith("EMAILÇ")) {
-          // Se encontrou a linha de email, retorne o email após "EMAILÇ"
-          return line.substring(6);
-        }
-      }
-      // Se não encontrou o campo de email, retorne uma string vazia
-      return "";
-    }
-
-
 
     function formatName(name) {
       return name.trim();
     }
 
-    // Função para formatar o telefone
     function formatTelefone(telefone) {
-      return telefone.replace(/\D/g, ""); // Remove todos os caracteres não numéricos
+      return telefone.replace(/\D/g, "");
     }
 
-    // Selecionar o input invisível automaticamente
+    function exibirDadosLidos(dados) {
+      const qrCodeDataElement = document.getElementById("qrCodeData");
+      if (dados) {
+        qrCodeDataElement.innerText = "Dados lidos: " + JSON.stringify(dados);
+      } else {
+        qrCodeDataElement.innerText = "Código QR vazio ou inválido.";
+      }
+    }
+
     hiddenInput.focus();
+
     codeReader
       .listVideoInputDevices()
       .then((videoInputDevices) => {
@@ -203,7 +195,7 @@
       const year = dateString.substr(0, 4);
       const month = dateString.substr(4, 2);
       const day = dateString.substr(6, 2);
-      return `${day}/${month}/${year}`.trim(); // Use trim() para remover espaços em branco e quebras de linha
+      return `${day}/${month}/${year}`.trim();
     }
   </script>
 </body>
