@@ -92,7 +92,7 @@
         telefone: telefoneMatch ? formatTelefone(telefoneMatch[1]) : "Erro",
       };
       console.log(pessoa);
-      axios.post("https://sua-api-aqui.com/endpoint", { pessoa })
+      axios.post("https://qcr-integracao.onrender.com/qrcode", { pessoa })
         .then(function (response) {
           console.log("Dados enviados para a API:", response.data);
         })
