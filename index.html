@@ -67,8 +67,6 @@
         const inputValue = hiddenInput.value;
         const json = parseInputValue(inputValue);
         console.log("Valor digitado no input invisível: " + inputValue);
-        console.log("JSON gerado:", json);
-        // Limpar o input para futuras entradas
         hiddenInput.value = "";
       }
     });
@@ -92,7 +90,7 @@
         telefone: telefoneMatch ? formatTelefone(telefoneMatch[1]) : "Erro",
       };
       console.log(pessoa);
-      axios.post("https://qcr-integracao.onrender.com/qrcode", { pessoa })
+      axios.post("https://qcr-integracao.onrender.com/qrcode", pessoa)
         .then(function (response) {
           console.log("Dados enviados para a API:", response.data);
         })
